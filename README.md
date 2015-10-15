@@ -56,7 +56,7 @@ app.get('/api/v1/employees', function(request, response) {
     });
 }
 ```
-### API
+### API Reference
 #### Create a Processor
 ```javascript
 var processQuery = qpm(options)
@@ -70,35 +70,34 @@ var processQuery = qpm(options)
    At least one of fieldPattern and valuePattern must be specified. If both are specified, the valuePattern is tested first. To get the opposite behaviour, define two patterns, with the fieldPattern preceding the valuePattern spec, as the first spec in the array that matches will be used.
 
 * **converters**: A dictionary of non-native (custom) data-type converters. 
-   * **key**: string identifier of the datatype and the value 
+   * **key**: string identifier of the data-type
    * **value**: a function to which a value string is passed, returning the converted value, or undefined if the value could not be converted.
 
-The auto-detect specs and the converters are added to a built-in set of auto-detect specs and converters, which work on the native data types. Native data-types are `string`, `int`, `float`, `bool` and `date`.
+The auto-detect specs and the converters are added to a built-in set of auto-detect specs and converters, which work on the native data types. Native data-types are `string`, `int`, `float`, `bool` and `date`. Whereas converters can be overridden (like using a custom converter for the `data` data-type), auto-detects cannot be overridden. Custom auto-detects will take precendence over the built-in ones, though.
 
 #### Process a Query
 ```javascript
-var q = processQuery(query, fieldSpec, validate)
+var q = processQuery(query, fieldSpec, strict)
 ```
 
-* **query**: Request Query object. Note that this is not the query string, it is instead the *parsed* query object, the same that can be found in the request.query object of express. If you have only the query-string, you could parse it using the querystring npm module to get the parsed request query object.
+* **query**: Request Query object. Note that this is not the query string, it is instead the *parsed* query object, the same that can be found in the req.query object of [express](http://expressjs.com/4x/api.html#req.query). If you have only the query-string, you could parse it using node's built-in querystring.parse() function to get the parsed request query object.
 * **fieldSpec** (Optional) Dictionary describing the fields, especially the data types of each field.
-   * key: field name
-   * value: An object with the following properties:
-      * dataType: the data type identifier.
-      * required: true/false
+   * **key**: field name
+   * **value**: An object with the following properties:
+      * **dataType**: the data type identifier.
+      * **required**: true/false
 * **strict** (Optional) Boolean value to indicate whether to consider the fieldSpec as a complete spec, ie, if field names not specified in the fieldSpec are encountered, it will be considered an error. Defaults to false.
 
-In cases where the client is not a controlled one, e.g., you are publishing a REST API for someone else's consumption, you would typically specify the complete fieldSpec and set strict to true. This will ensure that the caller is notified of errors and typos in their field names.
+In cases where the client is not a controlled one, e.g., you are publishing a REST API for someone else's consumption, you would typically specify the complete fieldSpec and set strict to true. This will ensure that the caller is notified of errors due to possible typos in their field names.
 
 If the client is your own, e.g., your own application, you may confident that there are no typos in the field spec and prefer the convenience of auto-detect over formal fields specification. In this case, the field spec can contain only the fields that cannot be auto-detected.
 
-## Query format
+## Query Format
 * All query parameters *not* starting with a double underscore ('__') are assumed to be field names
 * Special query parameters __sort, __limit and __offset are treated specially, and these indicate the sort spec, the limit of the output and the offset (skip) criteria for the Mongo query.
 * Any other query parameter that starts with a double underscore is ignored. You may use these for special handling that is not covered by this module.
 
-## Filter Parameters
-#### Operators
+### Operators
 In the most simplistic form, `<field>=<value>` in the query translates to an equals filter, for example `name=John` translates to a `{name: 'John'}` query filter specification.
 
 To use other operators instead of the default equals operator, the operator specification is joined with the field name using double-underscores. For example, `age__lt=50` translates to `{age: {$lt: '50'}}`. An `eq` operator can be forced as in `name__eq=John` in the previous example for clarity, but it adds no special value.
@@ -115,14 +114,14 @@ Other special operators supported are:
 `ire, irein`:  ignore-case variants of the above  
 `eqa`: equals-array
 
-#### Values
+### Values
 The value is converted to an array by splitting it on a comma, if the operator indicates that it requires mulitple values (all `in` operators, the `all` operator and the `eqa` operator).
 
 If multiple values are given for the same field, the value is retained as an array, regardless of the operator type.
 
 Values are parsed and converted to an appropriate data type if required, which is determined by the Field Type, which could be auto-detected or explicitly specified in the field spec.
 
-## Examples
+### Examples
 In the examples below, the original query string is shown rather than the parsed query object. This is for convenience, do ensure that the querystring is parsed before passing to processQuery.
 
 #### Simple fields
@@ -141,16 +140,24 @@ In the examples below, the original query string is shown rather than the parsed
 #### Array fields
 Array fields are treated no different from regular fields, as the processor does not know about Array fields. The operator and/or explicitly specified multiple values affects the formation of the filter, so the following examples give you a hint of what you should be doing, assuming `tags` is an array field in the MongoDB collection.
 
-* `tags=javascript` -> `{tags: 'javascript'}` One of the tags is 'javascript', that's how Mongo interprets this filter.
+* `tags=javascript` -> `{tags: 'javascript'}` One of the tags is 'javascript', that's how MongoDB interprets this filter.
 * `tags__in=javascript` -> `{tags: {$in: ['javascript']}}`, Same effect as the previous example, but a lot more explicit.
-* `tags__in=javascript,ecmascript` -> `{tags: {$in: ['javascript', 'ecmascript']}}`. Matches if tags contains either of the values.
-* `tags=javascript&tags=ecmascript` -> `{tags: ['javascript','ecmascript']}`  This is an exact Array Match, the value of tags must be exactly the two-element array.
-* `tags=javascript,ecmascript` -> `{tags: 'javascript,ecmascript'}`  This Not what is intended, which is why explicitly using `__in` is required, when comma separated multiple values are expected.
-* `tags__eqa=javascript,ecmascript` -> `{tags: ['javascript','ecmascript']}` The eqa operator keeps the MongoDB operator as eq, but forces a comma-split on the value. Another way of specifying an exact match, more convenient.
-* `tags_all=javascript,ecmascript` -> `{tags: {$all: ['javascript','ecmascript']}}` The value of tags must contain both the values.
+* `tags__in=javascript,ecmascript` -> `{tags: {$in: ['javascript', 'ecmascript']}}` Matches if tags contains either of the values.
+* `tags=javascript&tags=ecmascript` -> `{tags: ['javascript','ecmascript']}`  This is an exact array match, the value of tags must be exactly the two-element array.
+* `tags=javascript,ecmascript` -> `{tags: 'javascript,ecmascript'}`  This is not what is intended, which is why explicitly using `__in` is required, when comma separated multiple values are expected.
+* `tags__eqa=javascript,ecmascript` -> `{tags: ['javascript','ecmascript']}` The eqa operator keeps the MongoDB operator as eq, but forces a comma-split on the value. This is another way of specifying an exact array match, but more convenient.
+* `tags__all=javascript,ecmascript` -> `{tags: {$all: ['javascript','ecmascript']}}` The value of tags must contain both the values.
 
 ## Limitations
-The filter is intended to be simplistic, and is an *and* combination of each individual query parameter filter. *Or* is indirectly supported via the `in` operator and variants, but a higher level *or* combination of comparisons of the form age > 30 || num_years < 3 is not supported.
+The filter is intended to be simplistic, and is an *and* combination of each individual query parameter filter. *Or* is indirectly supported via the `in` operator and variants, but a higher level *or* combination of comparisons of the form `(age > 30 || num_years < 3)` is not supported.
 
-In most cases, this limitation is acceptable. In cases where this is not, a workaround is to call your API twice, once with each part of the *or* condition and combine the results in the client.
+In most cases, this limitation is acceptable. In cases where this is not,
+a workaround is to call your API twice, once with each part of the *or*
+condition and combine the results in the client.
+
+Future versions of the module may support this by adding a prefix/suffix to all fields that
+constitute one sub-clause of an *or* condition like so:
+
+age__gt=30&age__lt=40&.1__num_years__gt=3&.1__num_years__lt=5, which will result in
+(age > 30 && age < 40) || (num_years > 3 && num_years < 5)
 
