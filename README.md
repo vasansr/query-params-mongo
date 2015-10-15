@@ -158,6 +158,6 @@ condition and combine the results in the client.
 Future versions of the module may support this by adding a prefix/suffix to all fields that
 constitute one sub-clause of an *or* condition like so:
 
-age__gt=30&age__lt=40&.1__num_years__gt=3&.1__num_years__lt=5, which will result in
-(age > 30 && age < 40) || (num_years > 3 && num_years < 5)
+`age__gt=30&age__lt=40&.1__num_years__gt=3&.1__num_years__lt=5`, which will result in
+`(age > 30 && age < 40) || (num_years > 3 && num_years < 5)`
 
