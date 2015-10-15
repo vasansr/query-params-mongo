@@ -1,7 +1,7 @@
 {
   "name": "query-params-mongo",
   "version": "1.0.0",
-  "description": "Convert URL query parameters to a Mongo db criteria, with a intuitive, simple yet largely complete convention for the query parameters",
+  "description": "Convert URL query parameters to a Mongo db criteria, with an intuitive, yet complete convention for the query parameters",
   "main": "index.js",
   "scripts": {
     "test": "node test/test.js"

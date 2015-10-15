@@ -36,12 +36,12 @@ var mongodb = require('mongodb');
 
 var processQuery = qpm({
     converters: {objectId: mongodb.ObjectID},
-    autoDetect: [{ fieldPattern: /_id/, dataType: 'objectId' }]
+    autoDetect: [{ fieldPattern: /_id$/, dataType: 'objectId' }]
 });
 ...
-app.get('/api/v1/employees', function(request, response) {
+app.get('/api/v1/employees', function(req, res) {
     try {
-        var query = processQuery(request.query, 
+        var query = processQuery(req.query, 
             {name: {dataType: 'string', required: false}},
             true
         );
@@ -54,26 +54,38 @@ app.get('/api/v1/employees', function(request, response) {
                 .sort(query.sort).skip(query.offset).limit(query.limit);
         ...
     });
-}
+});
+
 ```
 ### API Reference
 #### Create a Processor
 ```javascript
+var qpm = require('query-params-mongo');
 var processQuery = qpm(options)
 ```
+To start off, we need to create a processor (a function) that can process the request query.
+You can create as many processors as you like, but typically, your app will use only one.
+The behaviour of the processor can be controlled using the options supplied to the creator function.
+
 ##### options:
 * **autoDetect**: An array of custom data-types that can be auto-detected, over and above the native data-types supported. Each auto-detect spec has the following properties:
    * **valuePattern**: A regex pattern. If the value matches this pattern, it is detected as the given data-type.
    * **fieldPattern**: A regex pattern. If the field name matches this pattern, it is detected as the given data-type.
    * **dataType**: the data-type identifier, this can be a native data-type or a custom data-type.
 
-   At least one of fieldPattern and valuePattern must be specified. If both are specified, the valuePattern is tested first. To get the opposite behaviour, define two patterns, with the fieldPattern preceding the valuePattern spec, as the first spec in the array that matches will be used.
+   At least one of fieldPattern and valuePattern must be specified. If both are specified, the valuePattern is tested first. To get the opposite behaviour, define it as two separate auto-detect specs, with the fieldPattern spec preceding the valuePattern one. The first spec in the array that matches will be used.
 
 * **converters**: A dictionary of non-native (custom) data-type converters. 
    * **key**: string identifier of the data-type
-   * **value**: a function to which a value string is passed, returning the converted value, or undefined if the value could not be converted.
+   * **value**: a function to which a value string needing conversion is passed, returning the converted value, or undefined if the value could not be converted.
 
-The auto-detect specs and the converters are added to a built-in set of auto-detect specs and converters, which work on the native data types. Native data-types are `string`, `int`, `float`, `bool` and `date`. Whereas converters can be overridden (like using a custom converter for the `data` data-type), auto-detects cannot be overridden. Custom auto-detects will take precendence over the built-in ones, though.
+The auto-detect specs and the converters are added to a built-in set of auto-detect specs and
+converters, which work on the native data types. Native data-types are 
+`string`, `int`, `float`, `bool` and `date`.
+Whereas converters can be overridden (like using a custom converter to replace the built-in
+converter for the `data` data-type), auto-detects cannot be overridden. Custom auto-detects
+will take precendence over the built-in ones, though. The best way to assuredly specify the
+data-type of a field is to specify it in the field specs.
 
 #### Process a Query
 ```javascript
@@ -86,13 +98,19 @@ var q = processQuery(query, fieldSpec, strict)
    * **value**: An object with the following properties:
       * **dataType**: the data type identifier.
       * **required**: true/false
-* **strict** (Optional) Boolean value to indicate whether to consider the fieldSpec as a complete spec, ie, if field names not specified in the fieldSpec are encountered, it will be considered an error. Defaults to false.
+* **strict** (Optional) Boolean value to indicate whether to consider the fieldSpec as a complete spec, i.e., if field names not specified in the fieldSpec are encountered, it will be considered an error. Defaults to false.
 
 In cases where the client is not a controlled one, e.g., you are publishing a REST API for someone else's consumption, you would typically specify the complete fieldSpec and set strict to true. This will ensure that the caller is notified of errors due to possible typos in their field names.
 
-If the client is your own, e.g., your own application, you may confident that there are no typos in the field spec and prefer the convenience of auto-detect over formal fields specification. In this case, the field spec can contain only the fields that cannot be auto-detected.
+If the client is your own, e.g., your own application, you may be confident that there are no typos in the field names in the query string. In this case, you may prefer the convenience of auto-detect over formal fields specification. In this case, the field spec can contain only the fields that cannot be auto-detected. But be warned that adding a filter on a non-existant field (caused by typos) will typically match no records.
 
 ## Query Format
+The query format is designed to be simple for simple use-cases, as well as completely readable in
+the browser's URL (i.e, contains no characters that will need URL encoding). If you have an HTML
+form, it is very likely that the query-string created out of this form's submission can be directly
+processed.
+
+The query format follows these rules:
 * All query parameters *not* starting with a double underscore ('__') are assumed to be field names
 * Special query parameters __sort, __limit and __offset are treated specially, and these indicate the sort spec, the limit of the output and the offset (skip) criteria for the Mongo query.
 * Any other query parameter that starts with a double underscore is ignored. You may use these for special handling that is not covered by this module.
@@ -106,23 +124,25 @@ Supported operators which have the same meaning as the MongoDB Query operators a
 `eq, ne, gt, gte, lt, lte, in, nin, all, exists`
 
 Other special operators supported are:  
-`sw, swin`: starts-with, starts-with-in (multiple values)  
-`isw, iswin`:  ignore-case variants of the above  
-`co, coin`: contains, contains-in (multiple values)  
-`ico, icoin`:  ignore-case variants of the above  
-`re, rein`: regular-expression, regular-expression in (mutliple values)  
-`ire, irein`:  ignore-case variants of the above  
+`sw` : starts-with, `swin` : starts-with-in (multiple values), `isw, iswin` : ignore-case variants of the same  
+`co` : contains, `coin` : contains-in (multiple values), `ico, icoin`:  ignore-case variants
+`re` : regular-expression, `rein` : regular-expression in (mutliple values), `ire, irein`:  ignore-case variants
 `eqa`: equals-array
 
 ### Values
-The value is converted to an array by splitting it on a comma, if the operator indicates that it requires mulitple values (all `in` operators, the `all` operator and the `eqa` operator).
+The value is converted to an array by splitting it on a comma, if the operator
+indicates that it requires mulitple values (all `in` operators, the `all` operator and
+the `eqa` operator).
 
-If multiple values are given for the same field, the value is retained as an array, regardless of the operator type.
+If multiple values are given for the same field, the value is considered an array,
+regardless of the operator type.
 
-Values are parsed and converted to an appropriate data type if required, which is determined by the Field Type, which could be auto-detected or explicitly specified in the field spec.
+Values are parsed and converted to an appropriate data-type, which could be auto-detected
+or explicitly specified in the field spec.
 
 ### Examples
-In the examples below, the original query string is shown rather than the parsed query object. This is for convenience, do ensure that the querystring is parsed before passing to processQuery.
+In the examples below, the original query string is shown rather than the parsed query object.
+This is for readability, do ensure that the querystring is parsed before passing to processQuery.
 
 #### Simple fields
 * `name=John` -> `{name: 'John'}` Simple equality operator.
@@ -149,6 +169,7 @@ Array fields are treated no different from regular fields, as the processor does
 * `tags__all=javascript,ecmascript` -> `{tags: {$all: ['javascript','ecmascript']}}` The value of tags must contain both the values.
 
 ## Limitations
+### Nesting AND inside OR conditions
 The filter is intended to be simplistic, and is an *and* combination of each individual query parameter filter. *Or* is indirectly supported via the `in` operator and variants, but a higher level *or* combination of comparisons of the form `(age > 30 || num_years < 3)` is not supported.
 
 In most cases, this limitation is acceptable. In cases where this is not,
@@ -161,3 +182,11 @@ constitute one sub-clause of an *or* condition like so:
 `age__gt=30&age__lt=40&.1__num_years__gt=3&.1__num_years__lt=5`, which will result in
 `(age > 30 && age < 40) || (num_years > 3 && num_years < 5)`
 
+### Controlling list of fields
+The list of fields to be returned cannot be specified. The parameter __fields
+is reserved for this purpose, and future versions may use this as required.
+
+### Field names with double-underscore
+Since the double-underscore is a special sequence used for separating the field name
+and the operator, we won't be able to handle field names that really have __ in them.
+Future versions may do some escaping to be able to handle this.
