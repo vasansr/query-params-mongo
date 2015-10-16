@@ -1,5 +1,5 @@
 # query-params-mongo
-Converts HTTP URL query string parameters to MongoDB criteria, consisting of filter, sort, limit and skip parameters. The query string parameters are expected to follow a certain easy-to-understand and easy-to-implement convention.
+Converts HTTP URL query string parameters to MongoDB criteria, consisting of filter, sort, limit and skip parameters. The query string parameters follow a very easy-to-understand and easy-to-implement convention.
 
 This can be used to handle REST API queries, or even regular GETs returning HTML pages that deal with a filtered and paginated display of the contents of a collection as a table.
 
@@ -35,8 +35,8 @@ var qpm = require('query-params-mongo');
 var mongodb = require('mongodb');
 
 var processQuery = qpm({
-    converters: {objectId: mongodb.ObjectID},
-    autoDetect: [{ fieldPattern: /_id$/, dataType: 'objectId' }]
+    autoDetect: [{ fieldPattern: /_id$/, dataType: 'objectId' }],
+    converters: {objectId: mongodb.ObjectID}
 });
 ...
 app.get('/api/v1/employees', function(req, res) {
@@ -163,8 +163,8 @@ Array fields are treated no different from regular fields, as the processor does
 * `tags=javascript` -> `{tags: 'javascript'}` One of the tags is 'javascript', that's how MongoDB interprets this filter.
 * `tags__in=javascript` -> `{tags: {$in: ['javascript']}}`, Same effect as the previous example, but a lot more explicit.
 * `tags__in=javascript,ecmascript` -> `{tags: {$in: ['javascript', 'ecmascript']}}` Matches if tags contains either of the values.
-* `tags=javascript&tags=ecmascript` -> `{tags: ['javascript','ecmascript']}`  This is an exact array match, the value of tags must be exactly the two-element array.
 * `tags=javascript,ecmascript` -> `{tags: 'javascript,ecmascript'}`  This is not what is intended, which is why explicitly using `__in` is required, when comma separated multiple values are expected.
+* `tags=javascript&tags=ecmascript` -> `{tags: ['javascript','ecmascript']}`  This is an exact array match, the value of tags must be exactly the two-element array.
 * `tags__eqa=javascript,ecmascript` -> `{tags: ['javascript','ecmascript']}` The eqa operator keeps the MongoDB operator as eq, but forces a comma-split on the value. This is another way of specifying an exact array match, but more convenient.
 * `tags__all=javascript,ecmascript` -> `{tags: {$all: ['javascript','ecmascript']}}` The value of tags must contain both the values.
 
@@ -265,7 +265,7 @@ constitute one sub-clause of an *or* condition like so:
 `age__gt=30&age__lt=40&.1__num_years__gt=3&.1__num_years__lt=5`, which will result in
 `(age > 30 && age < 40) || (num_years > 3 && num_years < 5)`
 
-### Controlling list of fields
+### Fields to return
 The list of fields to be returned cannot be specified. The parameter __fields
 is reserved for this purpose, and future versions may use this as required.
 
