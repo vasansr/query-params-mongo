@@ -124,9 +124,9 @@ Supported operators which have the same meaning as the MongoDB Query operators a
 `eq, ne, gt, gte, lt, lte, in, nin, all, exists`
 
 Other special operators supported are:  
-`sw` : starts-with, `swin` : starts-with-in (multiple values), `isw, iswin` : ignore-case variants of the same  
-`co` : contains, `coin` : contains-in (multiple values), `ico, icoin`:  ignore-case variants  
-`re` : regular-expression, `rein` : regular-expression in (mutliple values), `ire, irein`:  ignore-case variants  
+`sw, swin, isw, iswin` : starts-with, starts-with-in (multiple values), ignore-case variants of the same  
+`co, coin, ico, icoin` : contains, contains-in (multiple values), ignore-case variants  
+`re, rein, ire, irein` : regular-expression, regular-expression in (mutliple values), ignore-case variants  
 `eqa`: equals-array
 
 ### Values
@@ -167,6 +167,89 @@ Array fields are treated no different from regular fields, as the processor does
 * `tags=javascript,ecmascript` -> `{tags: 'javascript,ecmascript'}`  This is not what is intended, which is why explicitly using `__in` is required, when comma separated multiple values are expected.
 * `tags__eqa=javascript,ecmascript` -> `{tags: ['javascript','ecmascript']}` The eqa operator keeps the MongoDB operator as eq, but forces a comma-split on the value. This is another way of specifying an exact array match, but more convenient.
 * `tags__all=javascript,ecmascript` -> `{tags: {$all: ['javascript','ecmascript']}}` The value of tags must contain both the values.
+
+### HTML Forms
+The query format is designed in a manner such that there is no additional javascript processing
+required at the time of a form submission. 
+
+```html
+<form>
+  <label>Minimum age: </label>
+  <input name='age__gte' type='text' value='10'>
+  <label>Priority: </label>
+  <select name='priority'>
+    <option selected>P1</option>
+    <option>P2</option>
+    <option>P3</option>
+  </select>
+  <label>Status: </label>
+  <select name='status__in' multiple>
+    <option selected>New</option>
+    <option selected>Open</option>
+    <option>Closed</option>
+  </select>
+  <label>Severity: </label>
+  <select name='severity__in'>
+    <option>Critical</option>
+    <option selected value='Critical,High'>High and above</option>
+    <option value='Critical,High,Med'>Medium and above</option>
+    <option value='Critical,High,Med,Low'>Low and above</option>
+  </select>
+  <input type='submit' value='Submit'>
+</form>
+```
+
+When submitted, the above form will result in a query string like this:
+```
+age_gte=10&priority=P1&status__in=New&status__in=Open&severity__in=Critical,High
+```
+
+### Using AngularJS
+In AngularJS, it is customary to use two-way binding of form inputs to scope variables.
+In this case also, the processing required for generating the query string is very
+minimal.
+
+HTML:
+```html
+<form>
+  <label>Minimum age: </label>
+  <input ng-model='params.age__gte' type='text' value='10'>
+  <label>Priority: </label>
+  <select ng-model='params.priority'>
+    <option selected>P1</option>
+    <option>P2</option>
+    <option>P3</option>
+  </select>
+  <label>Status: </label>
+  <select ng-model='params.status__in' multiple>
+    <option selected>New</option>
+    <option selected>Open</option>
+    <option>Closed</option>
+  </select>
+  <label>Severity: </label>
+  <select ng-model='params.severity__in'>
+    <option>Critical</option>
+    <option selected value='Critical,High'>High and above</option>
+    <option value='Critical,High,Med'>Medium and above</option>
+    <option value='Critical,High,Med,Low'>Low and above</option>
+  </select>
+  <button ng-click='submit()'>Submit</submit>
+</form>
+```
+
+As compared to a conventional form, you can see that name is now replaced by ng-model.
+Also, there is a `params.` prefix to the field names so that the form values are stored
+as properties of a variable named `params` in the scope -- just for convenience, as you
+will see below in a sample submit() function.
+
+```javascript
+$scope.submit = function() {
+	$http.get("/api/v1/employees", {params: $scope.params}).then(function(response) {
+		$scope.employees = response.data;
+		// the rest is angular magic
+	});
+}
+```
 
 ## Limitations
 ### Nesting AND inside OR conditions
