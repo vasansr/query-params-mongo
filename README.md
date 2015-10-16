@@ -1,5 +1,5 @@
 # query-params-mongo
-Converts HTTP URL query string parameters to MongoDB criteria, consisting of filter, sort, limit and skip parameters. The query string parameters are expected to follow a certain easy-to-understand and easy-to-implement conventions.
+Converts HTTP URL query string parameters to MongoDB criteria, consisting of filter, sort, limit and skip parameters. The query string parameters are expected to follow a certain easy-to-understand and easy-to-implement convention.
 
 This can be used to handle REST API queries, or even regular GETs returning HTML pages that deal with a filtered and paginated display of the contents of a collection as a table.
 
@@ -125,8 +125,8 @@ Supported operators which have the same meaning as the MongoDB Query operators a
 
 Other special operators supported are:  
 `sw` : starts-with, `swin` : starts-with-in (multiple values), `isw, iswin` : ignore-case variants of the same  
-`co` : contains, `coin` : contains-in (multiple values), `ico, icoin`:  ignore-case variants
-`re` : regular-expression, `rein` : regular-expression in (mutliple values), `ire, irein`:  ignore-case variants
+`co` : contains, `coin` : contains-in (multiple values), `ico, icoin`:  ignore-case variants  
+`re` : regular-expression, `rein` : regular-expression in (mutliple values), `ire, irein`:  ignore-case variants  
 `eqa`: equals-array
 
 ### Values

@@ -4,7 +4,7 @@
  * Convert URL Query parameters to a Mongo db criteria. Typical usage is
  * to filter/sort a collection and display as a table.
  *
- * See test.js for example usage.
+ * See test/sample.js for example usage.
  *
  */
 
@@ -22,11 +22,11 @@ function regEscape(pattern) {
 }
 
 var defaultAutoDetectTypes = [
+	{ fieldPattern: /^is/, dataType: 'bool' },
+	{ fieldPattern: /_date$/, dataType: 'date' },
 	{ valuePattern: /^[0-9]+$/, dataType: 'int' } ,
 	{ valuePattern: /^[0-9]*\.[0-9]+$/, dataType: 'float' } ,
 	{ valuePattern: /^true|false|yes|no$/i, dataType: 'bool' } ,
-	{ fieldPattern: /^is/, dataType: 'bool' },
-	{ fieldPattern: /_date$/, dataType: 'date' },
 	{ valuePattern: /^[0-9-: ]+$/, dataType: 'date' } ,
 ];
 
@@ -46,6 +46,9 @@ var defaultDataTypeConverters = {
  * or more query processor functions based on the options passed in.
  */
 module.exports = function qpm(opts) {
+
+	if (!opts)
+		opts = {};
 
 	// user specified patterns take precedence, so add them before the default
 	var autoDetectTypes = opts.autoDetect ? opts.autoDetect : [];
