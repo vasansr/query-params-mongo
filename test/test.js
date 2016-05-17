@@ -178,5 +178,14 @@ describe("All Tests", function () {
 			result.offset.should.equal(20);
 		});
 	});
+
+	describe("Special case: --", function() {
+		var query = 'name__swin=--,John' ;
+
+		var result = processQuery(qs.parse(query));
+		it("should parse successfully", function() {
+			assert.ok(result);
+		});
+	});
 });
 

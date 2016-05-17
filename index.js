@@ -18,7 +18,9 @@ function isMultiValOp(paramOp) {
 }
 
 function regEscape(pattern) {
-	return pattern.replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
+	if (pattern !== undefined) {
+		return pattern.replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
+	}
 }
 
 var defaultAutoDetectTypes = [
@@ -27,7 +29,7 @@ var defaultAutoDetectTypes = [
 	{ valuePattern: /^[0-9]+$/, dataType: 'int' } ,
 	{ valuePattern: /^[0-9]*\.[0-9]+$/, dataType: 'float' } ,
 	{ valuePattern: /^true|false|yes|no$/i, dataType: 'bool' } ,
-	{ valuePattern: /^[0-9-: ]+$/, dataType: 'date' } ,
+	{ valuePattern: /^[0-9][0-9-: ]+$/, dataType: 'date' } ,
 ];
 
 var defaultDataTypeConverters = {
