@@ -241,7 +241,7 @@ module.exports = function qpm(opts) {
 		var sort;
 		if (params.__sort) {
 			sort = {};
-			var sortSpecs = params.__sort.split(',');
+			var sortSpecs = typeof params.__sort === 'string' ? params.__sort.split(',') : params.__sort;
 			sortSpecs.forEach(function(s) {
 				var direction = 1;
 				var sortField = s;
