@@ -179,6 +179,25 @@ describe("All Tests", function () {
 		});
 	});
 
+	describe("Sort as array", function() {
+		var query = 'name=John'
+			+ '&__sort=name&__sort=-age' // sort as true mv
+		;
+
+		var result;
+		it("should parse successfully", function() {
+			result = processQuery(qs.parse(query));
+			assert.ok(result);
+		});
+
+		it("filter should only contain filter fields", function() {
+			result.filter.should.deep.equal({name: 'John'});
+		});
+		it("sort should be parsed", function() {
+			result.sort.should.deep.equal({name: 1, age: -1});
+		});
+	});
+
 	describe("Special case: --", function() {
 		var query = 'name__swin=--,John' ;
 
@@ -188,4 +207,3 @@ describe("All Tests", function () {
 		});
 	});
 });
-
