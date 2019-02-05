@@ -1,4 +1,8 @@
 # query-params-mongo
+
+[![npm version](https://badge.fury.io/js/query-params-mongo.svg)](https://www.npmjs.com/package/query-params-mongo)
+[![downloads](https://img.shields.io/npm/dt/query-params-mongo.svg)](https://npmjs.org/query-params-mongo)
+
 Converts HTTP URL query string parameters to MongoDB criteria, consisting of filter, sort, limit and skip parameters. The query string parameters follow a very easy-to-understand and easy-to-implement convention.
 
 This can be used to handle REST API queries, or even regular GETs returning HTML pages that deal with a filtered and paginated display of the contents of a collection as a table.
