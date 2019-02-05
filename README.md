@@ -41,14 +41,14 @@ var processQuery = qpm({
 ...
 app.get('/api/v1/employees', function(req, res) {
     try {
-        var query = processQuery(req.query, 
+        var query = processQuery(req.query,
             {name: {dataType: 'string', required: false}},
             true
         );
     } catch (errors) {
         res.status(500).send(errors);
     }
-    
+
     mongodb.MongoClient.connect('mongodb://localhost:27017/mydb', function(err, db) {
         var cursor = db.collection('employees').find(query.filter)
                 .sort(query.sort).skip(query.offset).limit(query.limit);
@@ -75,16 +75,16 @@ The behaviour of the processor can be controlled using the options supplied to t
 
    At least one of fieldPattern and valuePattern must be specified. If both are specified, the valuePattern is tested first. To get the opposite behaviour, define it as two separate auto-detect specs, with the fieldPattern spec preceding the valuePattern one. The first spec in the array that matches will be used.
 
-* **converters**: A dictionary of non-native (custom) data-type converters. 
+* **converters**: A dictionary of non-native (custom) data-type converters.
    * **key**: string identifier of the data-type
    * **value**: a function to which a value string needing conversion is passed, returning the converted value, or undefined if the value could not be converted.
 
 The auto-detect specs and the converters are added to a built-in set of auto-detect specs and
-converters, which work on the native data types. Native data-types are 
+converters, which work on the native data types. Native data-types are
 `string`, `int`, `float`, `bool` and `date`.
 Whereas converters can be overridden (like using a custom converter to replace the built-in
 converter for the `data` data-type), auto-detects cannot be overridden. Custom auto-detects
-will take precendence over the built-in ones, though. The best way to assuredly specify the
+will take precedence over the built-in ones, though. The best way to assuredly specify the
 data-type of a field is to specify it in the field specs.
 
 #### Process a Query
@@ -102,7 +102,15 @@ var q = processQuery(query, fieldSpec, strict)
 
 In cases where the client is not a controlled one, e.g., you are publishing a REST API for someone else's consumption, you would typically specify the complete fieldSpec and set strict to true. This will ensure that the caller is notified of errors due to possible typos in their field names.
 
-If the client is your own, e.g., your own application, you may be confident that there are no typos in the field names in the query string. In this case, you may prefer the convenience of auto-detect over formal fields specification. In this case, the field spec can contain only the fields that cannot be auto-detected. But be warned that adding a filter on a non-existant field (caused by typos) will typically match no records.
+If the client is your own, e.g., your own application, you may be confident that there are no typos in the field names in the query string. In this case, you may prefer the convenience of auto-detect over formal fields specification. In this case, the field spec can contain only the fields that cannot be auto-detected. But be warned that adding a filter on a non-existent field (caused by typos) will typically match no records.
+
+#### Return Value
+The result of `processQuery()` is an object with the following fields:
+
+* `filter`: A MonboDB filter specification, suitable for passing to the `find()` method of `collection`.
+* `sort`: A MongoDB sort specification, suitable for passing to the `sort()` method of `cursor`.
+* `offset`: An integer, typically used for passing to the `skip()` method of `cursor`.
+* `limit`: An integer, typically used for passing to the `limit()` method of `cursor`.
 
 ## Query Format
 The query format is designed to be simple for simple use-cases, as well as completely readable in
@@ -168,9 +176,22 @@ Array fields are treated no different from regular fields, as the processor does
 * `tags__eqa=javascript,ecmascript` -> `{tags: ['javascript','ecmascript']}` The eqa operator keeps the MongoDB operator as eq, but forces a comma-split on the value. This is another way of specifying an exact array match, but more convenient.
 * `tags__all=javascript,ecmascript` -> `{tags: {$all: ['javascript','ecmascript']}}` The value of tags must contain both the values.
 
+### Special Parameters
+
+#### __sort
+Name(s) of field(s) to sort the result on. By default, the sort is in an ascending order. To specify
+descending order, prefix the name of the field with `-`. Multiple sort values can be specified as
+comma-separated values (`__sort=name,-age`) or multiple values (`__sort=name&__sort=-age`).
+
+#### __offset
+Specifies the offset into the list, is directly converted to the `skip` property in the return value.
+
+#### __limit
+Specifies the number of documents to limit the result, is directly converted to the `limit` property in the return value.
+
 ### HTML Forms
 The query format is designed in a manner such that there is no additional javascript processing
-required at the time of a form submission. 
+required at the time of a form submission.
 
 ```html
 <form>
