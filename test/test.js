@@ -40,6 +40,15 @@ describe("All Tests", function () {
 		it("should detect date type on value", function() {
 			filter.should.have.property('d').and.be.a('Date');
 		});
+		it("limit value should be zero", function() {
+			result.should.have.property('limit').and.equal(0);
+		});
+		it("offset value should be zero", function() {
+			result.should.have.property('offset').and.equal(0);
+		});
+		it("skip value should be zero", function() {
+			result.should.have.property('offset').and.equal(0);
+		});
 	});
 
 	describe("Other common operators", function() {
@@ -156,7 +165,7 @@ describe("All Tests", function () {
 		var query = 'name=John'
 			+ '&age__lte=50&age__gte=10'			// bunch of filter fields
 			+ '&__sort=name,-age'					// multiple sort, one ascending other desc
-			+ '&__limit=10&__offset=20'				// limit and offset
+			+ '&__limit=10&__skip=20'				// limit and offset/skip
 			+ '&__ignored_field'					// don't process this field
 		;
 
@@ -176,6 +185,9 @@ describe("All Tests", function () {
 		});
 		it("offset should be parsed", function() {
 			result.offset.should.equal(20);
+		});
+		it("skip should be parsed", function() {
+			result.skip.should.equal(20);
 		});
 	});
 

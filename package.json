@@ -1,6 +1,6 @@
 {
   "name": "query-params-mongo",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Convert URL query parameters to a Mongo db criteria, with an intuitive, yet complete convention for the query parameters",
   "main": "index.js",
   "files": [
