@@ -230,17 +230,21 @@ module.exports = function qpm(opts) {
 		/*
 		 * Other non-filter parameters processing: sort, skip and limit
 		 */
-		var limit, offset;
+		var limit = 0, skip = 0, offset = 0;
 		if (params.__limit) {
 			limit = parseInt(params.__limit);
 		}
 		if (params.__offset) {
 			offset = parseInt(params.__offset);
+			skip = offset;
+		}
+		if (params.__skip) {
+			offset = parseInt(params.__skip);
+			skip = offset;
 		}
 
-		var sort;
+		var sort = {};
 		if (params.__sort) {
-			sort = {};
 			var sortSpecs = typeof params.__sort === 'string' ? params.__sort.split(',') : params.__sort;
 			sortSpecs.forEach(function(s) {
 				var direction = 1;
@@ -259,8 +263,7 @@ module.exports = function qpm(opts) {
 		if (errors.length > 0)
 			throw errors;
 
-		return {filter: filter, sort: sort, limit: limit, offset: offset};
+		return {filter: filter, sort: sort, limit: limit, offset: offset, skip: skip};
 	}
 
 }
-

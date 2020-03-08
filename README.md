@@ -24,7 +24,7 @@ Is translated to:
     age: -1
   },
   limit: 10,
-  offset: 0
+  skip: 0
 }
 ```
 Where the filter and sort can be directly used as a MongoDB query filter and sort specification.
@@ -55,7 +55,7 @@ app.get('/api/v1/employees', function(req, res) {
 
     mongodb.MongoClient.connect('mongodb://localhost:27017/mydb', function(err, db) {
         var cursor = db.collection('employees').find(query.filter)
-                .sort(query.sort).skip(query.offset).limit(query.limit);
+                .sort(query.sort).skip(query.skip).limit(query.limit);
         ...
     });
 });
@@ -113,7 +113,7 @@ The result of `processQuery()` is an object with the following fields:
 
 * `filter`: A MonboDB filter specification, suitable for passing to the `find()` method of `collection`.
 * `sort`: A MongoDB sort specification, suitable for passing to the `sort()` method of `cursor`.
-* `offset`: An integer, typically used for passing to the `skip()` method of `cursor`.
+* `skip`: An integer, typically used for passing to the `skip()` method of `cursor`.
 * `limit`: An integer, typically used for passing to the `limit()` method of `cursor`.
 
 ## Query Format
@@ -124,7 +124,7 @@ processed.
 
 The query format follows these rules:
 * All query parameters *not* starting with a double underscore ('__') are assumed to be field names
-* Special query parameters __sort, __limit and __offset are treated specially, and these indicate the sort spec, the limit of the output and the offset (skip) criteria for the Mongo query.
+* Special query parameters __sort, __limit and __skip are treated specially, and these indicate the sort spec, the limit of the output and the skip (offset) criteria for the Mongo query.
 * Any other query parameter that starts with a double underscore is ignored. You may use these for special handling that is not covered by this module.
 
 ### Operators
@@ -187,7 +187,7 @@ Name(s) of field(s) to sort the result on. By default, the sort is in an ascendi
 descending order, prefix the name of the field with `-`. Multiple sort values can be specified as
 comma-separated values (`__sort=name,-age`) or multiple values (`__sort=name&__sort=-age`).
 
-#### __offset
+#### __skip
 Specifies the offset into the list, is directly converted to the `skip` property in the return value.
 
 #### __limit
