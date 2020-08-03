@@ -11,6 +11,7 @@ describe("All Tests", function () {
 			+ '&age__lte=50&age__gte=10'			// multiple checks on same field, int type
 			+ '&priority=4'							// force string comparison for int
 			+ '&testing=true'						// boolean auto-detect
+			+ '&notbool=whynot'						// boolean counter auto-detect
 			+ '&is_complete=1'						// boolean auto-detect, using field name
 			+ '&d=2015-09-30'						// date auto-detect
 		;
@@ -33,6 +34,9 @@ describe("All Tests", function () {
 		});
 		it("should detect boolean type on value", function() {
 			filter.should.have.property('testing').and.be.true;
+		});
+		it("should not detect boolean type on value", function() {
+			filter.should.have.property('notbool').and.equal('whynot');
 		});
 		it("should detect boolean type on name", function() {
 			filter.should.have.property('is_complete').and.be.true;
