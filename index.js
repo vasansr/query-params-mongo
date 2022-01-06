@@ -27,7 +27,7 @@ var defaultAutoDetectTypes = [
 	{ fieldPattern: /^is/, dataType: 'bool' },
 	{ fieldPattern: /_date$/, dataType: 'date' },
 	{ valuePattern: /^[0-9]+$/, dataType: 'int' } ,
-	{ valuePattern: /^[0-9]*\.[0-9]+$/, dataType: 'float' } ,
+	{ valuePattern: /^\-?[0-9]*\.[0-9]+$/, dataType: 'float' } ,
 	{ valuePattern: /^(true|false|yes|no)$/i, dataType: 'bool' } ,
 	{ valuePattern: /^[0-9][0-9-: ]+$/, dataType: 'date' } ,
 ];
