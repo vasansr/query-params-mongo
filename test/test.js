@@ -14,6 +14,7 @@ describe("All Tests", function () {
 			+ '&notbool=whynot'						// boolean counter auto-detect
 			+ '&is_complete=1'						// boolean auto-detect, using field name
 			+ '&d=2015-09-30'						// date auto-detect
+			+ '&f=-3.14'							// float auto-detect
 		;
 
 		var result = processQuery(qs.parse(query), {priority: {dataType: 'string'}});
@@ -43,6 +44,9 @@ describe("All Tests", function () {
 		});
 		it("should detect date type on value", function() {
 			filter.should.have.property('d').and.be.a('Date');
+		});
+		it("should detect float type on value", function() {
+			filter.should.have.property('f').and.be.a('number').and.equal(-3.14);
 		});
 		it("limit value should be zero", function() {
 			result.should.have.property('limit').and.equal(0);
