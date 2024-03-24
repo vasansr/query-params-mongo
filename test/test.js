@@ -174,7 +174,9 @@ describe("All Tests", function () {
 			+ '&age__lte=50&age__gte=10'			// bunch of filter fields
 			+ '&__sort=name,-age'					// multiple sort, one ascending other desc
 			+ '&__limit=10&__skip=20'				// limit and offset/skip
+			+ '&__projection=name,age'						// projection
 			+ '&__ignored_field'					// don't process this field
+			+ '&__include_count=true'				// include count
 		;
 
 		var result = processQuery(qs.parse(query));
@@ -196,6 +198,12 @@ describe("All Tests", function () {
 		});
 		it("skip should be parsed", function() {
 			result.skip.should.equal(20);
+		});
+		it("projection should be parsed", function() {
+			result.projection.should.deep.equal({name: 1, age: 1});
+		});
+		it("include_count should be parsed", function() {
+			result.include_count.should.equal(true);
 		});
 	});
 
